@@ -16,12 +16,12 @@ differences(_, [], []).
 differences(N, [H|T], [H2|T2]) :- H2 is N-H, differences(N, T, T2).
 
 /* Computing the gamma rate as a binary */
-lessThan(_, [], []).
-lessThan(N, [H|T], [1|T1]) :- H < N, lessThan(N, T, T1).
-lessThan(N, [H|T], [0|T1]) :- H > N, lessThan(N, T, T1).
-lessThan(N, [H|T], [0|T1]) :- H = N, lessThan(N, T, T1).
+leqThan(_, [], []).
+leqThan(N, [H|T], [1|T1]) :- H < N, leqThan(N, T, T1).
+leqThan(N, [H|T], [0|T1]) :- H > N, leqThan(N, T, T1).
+leqThan(N, [H|T], [1|T1]) :- H = N, leqThan(N, T, T1).
 
-gammaBin(X, Y) :- length(X, N), sumLstLst(X, Sum), differences(N, Sum, Diff), H is N/2, lessThan(H, Diff, Y).
+gammaBin(X, Y) :- length(X, N), sumLstLst(X, Sum), differences(N, Sum, Diff), H is N/2, leqThan(H, Diff, Y).
 
 /* Computing the epsilon rate as a binary*/
 inverted([], []).
@@ -40,6 +40,27 @@ epsilon(X, Y) :- epsilonBin(X, B), decimal(B, Y).
 
 /* Computing the power consumption */
 power(P) :- diagnostics(X), gamma(X, G), epsilon(X, E), P is G*E.
+
+/* Part two */
+
+filter(_, _, [], []).
+filter(N, V, [H|T], [H|T1]) :- nth(N, V, X), nth(N, H, X), filter(N, V, T, T1).
+filter(N, V, [_|T], Y) :- filter(N, V, T, Y).
+
+findOx(_, [X], X).
+findOx(N, X, Y) :- gammaBin(X, GB), filter(N, GB, X, Z), M is N+1, findOx(M, Z, Y).
+
+oxygenBin(O) :- diagnostics(X), findOx(0, X, O).
+
+findCO2(_, [X], X).
+findCO2(N, X, Y) :- epsilonBin(X, EB), filter(N, EB, X, Z), M is N+1, findCO2(M, Z, Y).
+
+co2Bin(C) :- diagnostics(X), findCO2(0, X, C).
+
+oxygen(O) :- oxygenBin(OB), decimal(OB, O).
+co2(C) :- co2Bin(CB), decimal(CB, C).
+
+lifeSupport(L) :- oxygen(O), co2(C), L is O*C.
 
 /* Diagnostics data */
 diagnostics(
