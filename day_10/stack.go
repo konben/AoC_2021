@@ -14,3 +14,7 @@ func (s *stack) pop() byte {
 	*s = (*s)[:len(*s)-1]
 	return top
 }
+
+func (s stack) isEmpty() bool {
+	return len(s) == 0
+}
